@@ -1,0 +1,2 @@
+It's how you can access the SVG view of the ER Diagram created with the help of Mermaid:
+https://www.mermaidchart.com/raw/a94e9aa7-a73c-45f4-b829-5ed70150bad2?theme=light&version=v0.1&format=svg
