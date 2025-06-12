@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Food;
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class FoodController extends Controller
 {
@@ -14,16 +14,15 @@ class FoodController extends Controller
      */
     public function index()
     {
-        $foods = Food::with('category')->paginate(10);
+        $foods = Food::with('category')->latest()->paginate(10);
         return view('foods.index', compact('foods'));
     }
 
     public function menu()
     {
         $categories = Category::with(['foods' => function ($query) {
-            $query->where('status', 'active')
-                  ->where('available_quantity', '>', 0);
-        }])->get();
+            $query->where('is_available', true);
+        }])->where('is_active', true)->get();
         
         return view('foods.menu', compact('categories'));
     }
@@ -33,7 +32,7 @@ class FoodController extends Controller
      */
     public function create()
     {
-        $categories = Category::all();
+        $categories = Category::where('is_active', true)->get();
         return view('foods.create', compact('categories'));
     }
 
@@ -43,23 +42,25 @@ class FoodController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|max:2048',
-            'available_quantity' => 'required|integer|min:0'
+            'is_available' => 'boolean',
+            'preparation_time' => 'required|integer|min:1',
         ]);
 
+        $validated['slug'] = Str::slug($validated['name']);
+
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('foods', 'public');
-            $validated['image'] = $path;
+            $validated['image'] = $request->file('image')->store('foods', 'public');
         }
 
         Food::create($validated);
 
         return redirect()->route('foods.index')
-            ->with('success', 'غذا با موفقیت اضافه شد.');
+            ->with('success', 'غذا با موفقیت ایجاد شد.');
     }
 
     /**
@@ -75,7 +76,7 @@ class FoodController extends Controller
      */
     public function edit(Food $food)
     {
-        $categories = Category::all();
+        $categories = Category::where('is_active', true)->get();
         return view('foods.edit', compact('food', 'categories'));
     }
 
@@ -85,20 +86,19 @@ class FoodController extends Controller
     public function update(Request $request, Food $food)
     {
         $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|max:2048',
-            'available_quantity' => 'required|integer|min:0'
+            'is_available' => 'boolean',
+            'preparation_time' => 'required|integer|min:1',
         ]);
 
+        $validated['slug'] = Str::slug($validated['name']);
+
         if ($request->hasFile('image')) {
-            if ($food->image) {
-                Storage::disk('public')->delete($food->image);
-            }
-            $path = $request->file('image')->store('foods', 'public');
-            $validated['image'] = $path;
+            $validated['image'] = $request->file('image')->store('foods', 'public');
         }
 
         $food->update($validated);
@@ -112,10 +112,6 @@ class FoodController extends Controller
      */
     public function destroy(Food $food)
     {
-        if ($food->image) {
-            Storage::disk('public')->delete($food->image);
-        }
-        
         $food->delete();
 
         return redirect()->route('foods.index')
