@@ -4,33 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'student_id',
+        'user_id',
         'total_amount',
         'status',
-        'payment_status',
-        'reservation_date',
-        'notes'
+        'notes',
+        'preparation_time',
+        'delivery_time',
     ];
 
     protected $casts = [
-        'reservation_date' => 'datetime',
+        'total_amount' => 'decimal:2',
+        'preparation_time' => 'datetime',
+        'delivery_time' => 'datetime',
     ];
 
-    public function student()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function foods()
+    public function items(): HasMany
     {
-        return $this->belongsToMany(Food::class, 'order_items')
-            ->withPivot('quantity', 'price')
-            ->withTimestamps();
+        return $this->hasMany(OrderItem::class);
     }
 }

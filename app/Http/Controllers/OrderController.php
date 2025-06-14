@@ -20,7 +20,7 @@ class OrderController extends Controller
             })
             ->latest()
             ->paginate(10);
-
+            
         return view('orders.index', compact('orders'));
     }
 
@@ -59,17 +59,17 @@ class OrderController extends Controller
 
                 $items[] = [
                     'food_id' => $food->id,
-                    'quantity' => $item['quantity'],
+                'quantity' => $item['quantity'],
                     'price' => $food->price,
                     'notes' => $item['notes'] ?? null,
                 ];
-            }
+        }
 
-            $order = Order::create([
+        $order = Order::create([
                 'user_id' => auth()->id(),
                 'total_amount' => $total,
                 'notes' => $validated['notes'] ?? null,
-            ]);
+        ]);
 
             $order->items()->createMany($items);
 
@@ -121,7 +121,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $this->authorize('updateStatus', $order);
-
+        
         $validated = $request->validate([
             'status' => 'required|in:preparing,ready,delivered,cancelled',
         ]);
