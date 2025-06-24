@@ -4,20 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Food;
+use App\Http\Requests\StoreOrderRequest;
+use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    protected $orderService;
+
+    public function __construct(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        $this->authorize('viewAny', Order::class);
+
         $orders = Order::with(['user', 'items.food'])
-            ->when(auth()->user()->hasRole('student'), function ($query) {
-                return $query->where('user_id', auth()->id());
-            })
             ->latest()
             ->paginate(10);
             
@@ -36,50 +44,15 @@ class OrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreOrderRequest $request)
     {
-        $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.food_id' => 'required|exists:foods,id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'items.*.notes' => 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
-
         try {
-            DB::beginTransaction();
-
-            $total = 0;
-            $items = [];
-
-            foreach ($validated['items'] as $item) {
-                $food = Food::findOrFail($item['food_id']);
-                $subtotal = $food->price * $item['quantity'];
-                $total += $subtotal;
-
-                $items[] = [
-                    'food_id' => $food->id,
-                'quantity' => $item['quantity'],
-                    'price' => $food->price,
-                    'notes' => $item['notes'] ?? null,
-                ];
-        }
-
-        $order = Order::create([
-                'user_id' => auth()->id(),
-                'total_amount' => $total,
-                'notes' => $validated['notes'] ?? null,
-        ]);
-
-            $order->items()->createMany($items);
-
-            DB::commit();
+            $order = $this->orderService->createOrder($request->validated());
 
             return redirect()->route('orders.show', $order)
                 ->with('success', 'سفارش با موفقیت ثبت شد.');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'خطا در ثبت سفارش. لطفا دوباره تلاش کنید.']);
+            return back()->withInput()->withErrors(['error' => 'خطا در ثبت سفارش: ' . $e->getMessage()]);
         }
     }
 
@@ -113,9 +86,11 @@ class OrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Order $order)
     {
-        //
+        $this->authorize('delete', $order);
+        $order->delete();
+        return redirect()->route('orders.index')->with('success', 'سفارش با موفقیت حذف شد.');
     }
 
     public function updateStatus(Request $request, Order $order)
@@ -126,13 +101,15 @@ class OrderController extends Controller
             'status' => 'required|in:preparing,ready,delivered,cancelled',
         ]);
 
-        $order->update($validated);
+        $updateData = $validated;
 
         if ($validated['status'] === 'preparing') {
-            $order->update(['preparation_time' => now()]);
+            $updateData['preparation_time'] = now();
         } elseif ($validated['status'] === 'delivered') {
-            $order->update(['delivery_time' => now()]);
+            $updateData['delivery_time'] = now();
         }
+
+        $order->update($updateData);
 
         return back()->with('success', 'وضعیت سفارش با موفقیت بروزرسانی شد.');
     }

@@ -14,6 +14,7 @@ class FoodController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Food::class);
         $foods = Food::with('category')->latest()->paginate(10);
         return view('foods.index', compact('foods'));
     }
@@ -32,6 +33,7 @@ class FoodController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Food::class);
         $categories = Category::where('is_active', true)->get();
         return view('foods.create', compact('categories'));
     }
@@ -41,6 +43,7 @@ class FoodController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Food::class);
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
@@ -66,9 +69,10 @@ class FoodController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Food $food)
     {
-        //
+        $this->authorize('view', $food);
+        return view('foods.show', compact('food'));
     }
 
     /**
@@ -76,6 +80,7 @@ class FoodController extends Controller
      */
     public function edit(Food $food)
     {
+        $this->authorize('update', $food);
         $categories = Category::where('is_active', true)->get();
         return view('foods.edit', compact('food', 'categories'));
     }
@@ -85,6 +90,7 @@ class FoodController extends Controller
      */
     public function update(Request $request, Food $food)
     {
+        $this->authorize('update', $food);
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
@@ -112,6 +118,7 @@ class FoodController extends Controller
      */
     public function destroy(Food $food)
     {
+        $this->authorize('delete', $food);
         $food->delete();
 
         return redirect()->route('foods.index')

@@ -21,15 +21,14 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('foods', FoodController::class);
         Route::resource('categories', CategoryController::class);
         Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+        Route::resource('orders', OrderController::class)->only(['index', 'destroy']);
     });
     
     // Student Routes
     Route::middleware(['role:student'])->group(function () {
         Route::get('/menu', [FoodController::class, 'menu'])->name('foods.menu');
+        Route::resource('orders', OrderController::class)->only(['create', 'store', 'show']);
     });
-    
-    // Common Routes
-    Route::resource('orders', OrderController::class);
 });
 
 require __DIR__.'/auth.php';
