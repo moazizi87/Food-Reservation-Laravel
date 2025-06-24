@@ -16,6 +16,10 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
     // Admin Routes
     Route::middleware(['role:admin'])->group(function () {
         Route::resource('foods', FoodController::class);
