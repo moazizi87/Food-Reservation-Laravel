@@ -34,10 +34,16 @@ class OrderPolicy
         return $user->hasRole('admin');
     }
 
-    // Only admin can delete an order.
+    /**
+     * Determine whether the user can delete the model.
+     */
     public function delete(User $user, Order $order): bool
     {
-        return $user->hasRole('admin');
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        return $order->user_id === $user->id && $order->status === 'pending';
     }
 
     // Only admin can update the status of an order.

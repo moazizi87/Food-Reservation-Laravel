@@ -33,7 +33,30 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav me-auto">
-
+                        @auth
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('dashboard') }}">داشبورد</a>
+                            </li>
+                            @if(auth()->user()->hasRole('admin'))
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        مدیریت
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                        <li><a class="dropdown-item" href="{{ route('categories.index') }}">مدیریت دسته‌بندی‌ها</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('foods.index') }}">مدیریت غذاها</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('orders.index') }}">مدیریت سفارشات</a></li>
+                                    </ul>
+                                </li>
+                            @else
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('foods.menu') }}">منوی غذا</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('orders.my') }}">سفارشات من</a>
+                                </li>
+                            @endif
+                        @endauth
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -58,6 +81,7 @@
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('profile.edit') }}">پروفایل</a>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">

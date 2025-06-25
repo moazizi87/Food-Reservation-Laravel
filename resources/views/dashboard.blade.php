@@ -20,8 +20,10 @@
                         @if(Auth::user()->hasRole('admin'))
                             <a href="{{ route('foods.index') }}" class="btn btn-primary">مدیریت غذاها</a>
                             <a href="{{ route('categories.index') }}" class="btn btn-secondary">مدیریت دسته‌بندی‌ها</a>
+                            <a href="{{ route('orders.index') }}" class="btn btn-info">مدیریت سفارشات</a>
                         @else
                             <a href="{{ route('foods.menu') }}" class="btn btn-primary">مشاهده منو و ثبت سفارش</a>
+                            <a href="{{ route('orders.my') }}" class="btn btn-secondary">تاریخچه سفارشات</a>
                         @endif
                     </div>
                 </div>

@@ -6,11 +6,14 @@ use App\Models\Order;
 use App\Models\Food;
 use App\Http\Requests\StoreOrderRequest;
 use App\Services\OrderService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    use AuthorizesRequests;
+
     protected $orderService;
 
     public function __construct(OrderService $orderService)
@@ -30,6 +33,16 @@ class OrderController extends Controller
             ->paginate(10);
             
         return view('orders.index', compact('orders'));
+    }
+
+    public function myOrders()
+    {
+        $orders = Order::where('user_id', auth()->id())
+            ->with(['items.food'])
+            ->latest()
+            ->paginate(10);
+
+        return view('orders.my-index', compact('orders'));
     }
 
     /**

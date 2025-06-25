@@ -1,84 +1,66 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('ویرایش غذا') }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <form action="{{ route('foods.update', $food) }}" method="POST" enctype="multipart/form-data">
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">ویرایش غذا: {{ $food->name }}</div>
+                <div class="card-body">
+                    <form action="{{ route('foods.update', $food->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
-                        <div class="mb-4">
-                            <x-input-label for="category_id" :value="__('دسته‌بندی')" />
-                            <select id="category_id" name="category_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
-                                <option value="">{{ __('انتخاب کنید') }}</option>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">نام غذا</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ old('name', $food->name) }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">توضیحات</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required>{{ old('description', $food->description) }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="price" class="form-label">قیمت (تومان)</label>
+                            <input type="number" class="form-control" id="price" name="price" value="{{ old('price', $food->price) }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">دسته‌بندی</label>
+                            <select class="form-select" id="category_id" name="category_id" required>
                                 @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id', $food->category_id) == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
+                                    <option value="{{ $category->id }}" @if($category->id == old('category_id', $food->category_id)) selected @endif>{{ $category->name }}</option>
                                 @endforeach
                             </select>
-                            <x-input-error :messages="$errors->get('category_id')" class="mt-2" />
                         </div>
 
-                        <div class="mb-4">
-                            <x-input-label for="name" :value="__('نام')" />
-                            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name', $food->name)" required />
-                            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+                        <div class="mb-3">
+                            <label for="preparation_time" class="form-label">زمان آماده‌سازی (دقیقه)</label>
+                            <input type="number" class="form-control" id="preparation_time" name="preparation_time" value="{{ old('preparation_time', $food->preparation_time) }}" required>
                         </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="description" :value="__('توضیحات')" />
-                            <x-textarea-input id="description" class="block mt-1 w-full" name="description">{{ old('description', $food->description) }}</x-textarea-input>
-                            <x-input-error :messages="$errors->get('description')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="price" :value="__('قیمت')" />
-                            <x-text-input id="price" class="block mt-1 w-full" type="number" name="price" :value="old('price', $food->price)" required />
-                            <x-input-error :messages="$errors->get('price')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="image" :value="__('تصویر')" />
+                        
+                        <div class="mb-3">
+                            <label for="image" class="form-label">تصویر فعلی</label>
                             @if($food->image)
-                                <div class="mt-2">
-                                    <img src="{{ Storage::url($food->image) }}" alt="{{ $food->name }}" class="h-32 w-32 object-cover rounded-lg">
-                                </div>
+                                <img src="{{ asset('storage/' . $food->image) }}" alt="{{ $food->name }}" class="img-thumbnail mb-2" width="150">
                             @endif
-                            <x-file-input id="image" class="block mt-1 w-full" name="image" />
-                            <x-input-error :messages="$errors->get('image')" class="mt-2" />
+                            <input type="file" class="form-control" id="image" name="image">
                         </div>
-
-                        <div class="mb-4">
-                            <x-input-label for="preparation_time" :value="__('زمان آماده‌سازی (دقیقه)')" />
-                            <x-text-input id="preparation_time" class="block mt-1 w-full" type="number" name="preparation_time" :value="old('preparation_time', $food->preparation_time)" required />
-                            <x-input-error :messages="$errors->get('preparation_time')" class="mt-2" />
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="is_available" class="inline-flex items-center">
-                                <input id="is_available" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="is_available" value="1" {{ old('is_available', $food->is_available) ? 'checked' : '' }}>
-                                <span class="mr-2 text-sm text-gray-600">{{ __('موجود') }}</span>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="is_available" name="is_available" value="1" @if(old('is_available', $food->is_available)) checked @endif>
+                            <label class="form-check-label" for="is_available">
+                                موجود است
                             </label>
                         </div>
 
-                        <div class="flex items-center justify-end mt-4">
-                            <x-secondary-button onclick="window.history.back()" type="button" class="ml-4">
-                                {{ __('انصراف') }}
-                            </x-secondary-button>
-                            <x-primary-button>
-                                {{ __('ذخیره') }}
-                            </x-primary-button>
-                        </div>
+                        <button type="submit" class="btn btn-primary">بروزرسانی</button>
+                        <a href="{{ route('foods.index') }}" class="btn btn-secondary">بازگشت</a>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout> 
+</div>
+@endsection 
