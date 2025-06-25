@@ -1,0 +1,66 @@
+ER Diagram for Food Reservation System:
+
+USERS ||--o{ ORDERS : has
+USERS ||--o{ STUDENTS : has
+STUDENTS ||--o{ ORDERS : has
+CATEGORIES ||--o{ FOODS : has
+FOODS ||--o{ ORDER_ITEMS : has
+ORDERS ||--o{ ORDER_ITEMS : has
+FOODS }o--|| CATEGORIES : belongs_to
+ORDER_ITEMS }o--|| FOODS : belongs_to
+ORDER_ITEMS }o--|| ORDERS : belongs_to
+ORDERS }o--|| USERS : belongs_to
+STUDENTS }o--|| USERS : belongs_to
+
+USERS
+  id (int)
+  name (string)
+  email (string)
+  password (string)
+  role (string)
+
+STUDENTS
+  id (int)
+  user_id (int)
+  student_id (string)
+  name (string)
+  email (string)
+  phone (string)
+  address (string)
+  status (string)
+
+CATEGORIES
+  id (int)
+  name (string)
+  slug (string)
+  description (string)
+  image (string)
+  is_active (boolean)
+
+FOODS
+  id (int)
+  category_id (int)
+  name (string)
+  slug (string)
+  description (string)
+  price (decimal)
+  image (string)
+  is_available (boolean)
+  preparation_time (int)
+
+ORDERS
+  id (int)
+  user_id (int)
+  total_amount (decimal)
+  status (string)
+  notes (string)
+  preparation_time (datetime)
+  delivery_time (datetime)
+
+ORDER_ITEMS
+  id (int)
+  order_id (int)
+  food_id (int)
+  quantity (int)
+  price (decimal)
+  notes (string) 
